@@ -1,29 +1,27 @@
-# http://docs.haskellstack.org/en/stable/travis_ci.html
-
 language: haskell
 
-branches:
-  only:
-    - master
+matrix:
+  allow_failures:
+    - env: GHCVER=head
+    - env: GHCVER=7.10.1
 
-sudo: false
-
-cache:
-  directories:
-    - $HOME/.stack/
+env:
+ - GHCVER=7.6.3
+ - GHCVER=7.8.3
+ - GHCVER=7.10.1
+ - GHCVER=head
 
 before_install:
-  - mkdir -p ~/.local/bin
-  - export PATH=~/.local/bin:$PATH
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-  - chmod a+x ~/.local/bin/stack
+ - sudo add-apt-repository -y ppa:hvr/ghc
+ - travis_retry sudo apt-get update
+ - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER
+ - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+# - travis_retry cabal-1.18 update # commenting out shortens testing time
+# - travis_retry cabal-1.18 install template-haskell${THVER} QuickCheck${QCVER}
 
 install:
-  - stack +RTS -N2 -RTS setup 
-  - stack +RTS -N2 -RTS build 
+ - travis_retry cabal-1.18 install --only-dependencies
+ - cabal-1.18 install --enable-tests
 
 script:
-  - git --version
-  - stack --version
-  - stack +RTS -N2 -RTS test 
-
+ - echo "All done."
